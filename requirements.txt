@@ -1,0 +1,33 @@
+# Machine Vision and Machine Learning requirements
+# Core scientific packages
+numpy
+scipy
+pandas
+matplotlib
+seaborn
+
+# Imaging / computer vision
+opencv-python
+scikit-image
+Pillow
+imageio
+imageio-ffmpeg
+
+# Machine learning / deep learning
+scikit-learn
+tensorflow
+torch
+torchvision
+
+# Utilities
+tqdm
+h5py
+protobuf
+pyyaml
+albumentations
+onnxruntime
+jupyter
+notebook
+
+# Optional / system tools
+psutil
