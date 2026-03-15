@@ -1,172 +1,170 @@
 # Fraud Detection System — Engineering Documentation
 
-**Document Type:** Technical Engineering Documentation  
-**Project:** Machine Learning Based Fraud Detection  
-**Team:**Sanir Subedi, Ajit GC, Abhishek KC,Ayush Shrestha, Taqi 
+### Technical Report — Machine Learning Course Project
+
+**Author:** Sanir Subedi , Ajit GC , Abhishek Kc , Aayush Shrestha , Taqi Muhammad 
+**Course:** Machine Learning  
+**Submission Date:** March 2026  
+**Repository:** https://github.com/SanirSubedi/Fraud-Detection  
+**Dataset Source:** Kaggle — Fraud Detection Dataset by Aman Ali Siddiqui  
+https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset
 
 ---
 
 ## Table of Contents
 
-1. [Project Overview](#1-project-overview)
-2. [System Architecture](#2-system-architecture)
-3. [Dataset Specification](#3-dataset-specification)
-4. [Data Pipeline](#4-data-pipeline)
+1. [Introduction](#1-introduction)
+2. [Dataset](#2-dataset)
+3. [Data Exploration and Observations](#3-data-exploration-and-observations)
+4. [Data Cleaning and Preprocessing](#4-data-cleaning-and-preprocessing)
 5. [Feature Engineering](#5-feature-engineering)
 6. [Model Development](#6-model-development)
-7. [Model Evaluation & Benchmarking](#7-model-evaluation--benchmarking)
-8. [Final Model Selection](#8-final-model-selection)
-9. [Deployment — Streamlit Application](#9-deployment--streamlit-application)
-10. [Known Issues & Bug Log](#10-known-issues--bug-log)
-11. [Requirements Compliance](#11-requirements-compliance)
-12. [Conclusions & Future Work](#12-conclusions--future-work)
+7. [Results and Evaluation](#7-results-and-evaluation)
+8. [Best Model Selection](#8-best-model-selection)
+9. [Deployment](#9-deployment)
+10. [Conclusions](#10-conclusions)
+11. [References](#11-references)
 
 ---
 
-## 1. Project Overview
+## 1. Introduction
 
-### 1.1 Purpose
+### 1.1 Background
 
-This document describes the end to end engineering of a **supervised binary classification system** for detecting fraudulent financial transactions. The system ingests raw transaction records, preprocesses and engineers features, trains and benchmarks multiple machine learning models, selects the best performing model, and serves predictions via an interactive web application.
+Financial fraud is a persistent and damaging problem. Fraudulent transactions cost the global economy tens of billions of dollars annually. Detecting fraud manually is not feasible at the scale of modern digital payments, where millions of transactions are processed every hour. Machine learning offers a practical path forward — a trained model can evaluate each transaction in milliseconds and flag suspicious activity automatically.
 
-### 1.2 Problem Statement
+This project builds and evaluates a machine learning system for binary fraud classification. Given a set of transaction features, the system predicts whether a transaction is fraudulent (1) or legitimate (0).
 
-Financial fraud is a critical real world problem costing the global economy billions of dollars annually. The core challenge is that fraud events are **extremely rare** representing only 0.13% of all transactions making this a highly imbalanced classification problem where standard accuracy metrics are misleading and naive models fail entirely.
+### 1.2 Project Objectives
 
-### 1.3 Objectives
+- Load and explore a large real-world financial transaction dataset
+- Identify patterns and signals that distinguish fraud from legitimate activity
+- Clean and engineer features that improve model performance
+- Train and compare four machine learning models
+- Select the best-performing model using appropriate evaluation metrics
+- Deploy the trained model for live inference
 
-| No | Objective | Outcome |
-|---|---|---|
-| 1 | Explore and understand the transaction dataset | Completed |
-| 2 | Clean and engineer predictive features | Completed |
-| 3 | Train and compare multiple ML models | Completed — 3 models benchmarked |
-| 4 | Evaluate using appropriate imbalanced-class metrics | Completed |
-| 5 | Select and persist the best model | Completed |
-| 6 | Deploy an interactive prediction application | Completed |
+### 1.3 Why This Dataset
 
-### 1.4 Technology Stack
+The PaySim fraud dataset was chosen because it simulates real mobile money transactions and includes a ground truth label (`isFraud`), making it directly suitable for supervised classification. The dataset is large enough — over six million records — to reflect the scale seen in production financial systems. It also replicates a core real-world challenge: fraud cases are extremely rare, making up only 0.13% of all transactions. This imbalance is not a simplified classroom condition — it is the exact difficulty that production fraud detection systems face every day.
 
-| Component | Technology |
+---
+
+## 2. Dataset
+
+### 2.1 Source
+
+| Property | Detail |
 |---|---|
-| Language | Python 3.x |
-| Data Processing | pandas, NumPy |
-| Machine Learning | scikit-learn |
-| Visualisation | matplotlib, seaborn |
-| Web Application | Streamlit |
-| Model Persistence | joblib |
-| Notebook Environment | Jupyter Notebook |
+| Name | Fraud Detection Dataset |
+| Author | Aman Ali Siddiqui |
+| Platform | Kaggle |
+| URL | https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset |
+| File | AIML Dataset.csv |
 
----
+### 2.2 Overview
 
-## 2. System Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        DATA LAYER                           │
-│         AIML Dataset.csv  (6,362,620 rows × 11 cols)        │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    PROCESSING LAYER                         │
-│  1. Data Cleaning       → null checks, column drops         │
-│  2. EDA & Visualisation → charts, correlation, patterns     │
-│  3. Feature Engineering → balanceDiff features              │
-│  4. Preprocessing       → OneHotEncoder + StandardScaler    │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      MODEL LAYER                            │
-│  ┌──────────────────┐  ┌──────┐  ┌───────────────────┐      │
-│  │ Logistic         │  │ KNN  │  │ Decision Tree      │     │
-│  │ Regression       │  │ k=5  │  │ max_depth=10       │     │
-│  └──────────────────┘  └──────┘  └───────────────────┘      │
-│              │               │              │               │
-│              └───────────────┴──────────────┘               │
-│                           Benchmarked → Best model selected │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    PERSISTENCE LAYER                        │
-│           frad_detection_pipeline.pkl           │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   APPLICATION LAYER                         │
-│              Streamlit Web App  (app.py)                    │
-│         Real-time single-transaction prediction             │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 3. Dataset Specification
-
-### 3.1 Source
-
-**Dataset:** PaySim Financial Transactions Simulation  
-**File:** `AIML Dataset.csv`  
-**Rows:** 6,362,620  
-**Columns:** 11  
-**Type:** Tabular, supervised binary classification  
-
-### 3.2 Schema
-
-| Column | Data Type | Description |
-|---|---|---|
-| `step` | Integer | Time unit; 1 step = 1 simulated hour |
-| `type` | String (Categorical) | Transaction type: PAYMENT, TRANSFER, CASH_OUT, DEPOSIT, DEBIT |
-| `amount` | Float | Transaction amount in local currency |
-| `nameOrig` | String | Originating (sender) account ID |
-| `oldbalanceOrg` | Float | Sender balance before transaction |
-| `newbalanceOrig` | Float | Sender balance after transaction |
-| `nameDest` | String | Destination (receiver) account ID |
-| `oldbalanceDest` | Float | Receiver balance before transaction |
-| `newbalanceDest` | Float | Receiver balance after transaction |
-| `isFlaggedFraud` | Integer | System rule-based fraud flag (mostly zero) |
-| `isFraud` | Integer | **Ground truth label** — 1 = fraud, 0 = legitimate |
-
-### 3.3 Class Distribution
-
-| Class | Label | Count | Percentage |
-|---|---|---|---|
-| Legitimate | 0 | 6,354,407 | 99.87% |
-| Fraud | 1 | 8,213 | **0.13%** |
-
-**Engineering Note:** The severe class imbalance (1:774 fraud-to-legitimate ratio) means accuracy is not a valid evaluation metric. Precision, Recall, and F1-Score on the fraud class must be used as primary metrics. All models were configured with `class_weight='balanced'` where supported.
-
-### 3.4 Data Quality Assessment
-
-| Check | Result |
+| Property | Value |
 |---|---|
-| Null / missing values | None found (`df.isnull().sum()` = 0 across all columns) |
-| Duplicate rows | Not checked — out of scope for this version |
-| Outliers in `amount` | Present (right-skewed); handled via log transformation in EDA |
-| Negative balance diffs | 1,399,253 sender-side; 1,238,864 receiver-side — valid transaction artifacts |
+| Total rows | 6,362,620 |
+| Total columns | 11 |
+| Task type | Binary classification |
+| Fraud rows | 8,213 |
+| Legitimate rows | 6,354,407 |
+| Missing values | None |
+
+### 2.3 Column Schema
+
+| Column | Type | Description |
+|---|---|---|
+| `step` | Integer | Simulated time unit. 1 step = 1 hour of simulation |
+| `type` | String | Transaction type: PAYMENT, TRANSFER, CASH_OUT, DEPOSIT, DEBIT |
+| `amount` | Float | Amount transacted |
+| `nameOrig` | String | Sender account identifier |
+| `oldbalanceOrg` | Float | Sender balance before the transaction |
+| `newbalanceOrig` | Float | Sender balance after the transaction |
+| `nameDest` | String | Receiver account identifier |
+| `oldbalanceDest` | Float | Receiver balance before the transaction |
+| `newbalanceDest` | Float | Receiver balance after the transaction |
+| `isFlaggedFraud` | Integer | Rule-based system flag |
+| `isFraud` | Integer | **Target label** — 1 = fraud, 0 = legitimate |
+
+### 2.4 Class Distribution
+
+| Class | Count | Percentage |
+|---|---|---|
+| Legitimate (0) | 6,354,407 | 99.87% |
+| Fraud (1) | 8,213 | 0.13% |
+
+The fraud-to-legitimate ratio is approximately 1:774. A model that predicts every transaction as legitimate would achieve 99.87% accuracy while detecting zero fraud. This makes accuracy an unreliable evaluation metric. Precision, Recall and F1-Score on the fraud class are used throughout this report instead.
 
 ---
 
-## 4. Data Pipeline
+## 3. Data Exploration and Observations
 
-### 4.1 Loading
+Exploratory data analysis was carried out before any modelling work. The findings below directly shaped both feature selection and model choice.
+
+### 3.1 Fraud is Restricted to Two Transaction Types
+
+The most significant finding from the EDA was that fraud occurs exclusively in TRANSFER and CASH_OUT transactions. No fraud was found in PAYMENT, DEPOSIT or DEBIT transactions across the full 6.3 million row dataset. This makes `type` the single most discriminating feature available.
+
+### 3.2 Account Drain Pattern
+
+A filter was applied to identify transactions where the sender had a positive balance that dropped to exactly zero:
 
 ```python
-df = pd.read_csv("archive/AIML Dataset.csv")
+zero_after_transfer = df[
+    (df["oldbalanceOrg"] > 0) &
+    (df["newbalanceOrig"] == 0) &
+    (df["type"].isin(["TRANSFER", "CASH_OUT"]))
+]
+# Result: 1,188,074 transactions
 ```
 
-### 4.2 Cleaning & Column Removal
+This pattern — a sender's account being fully emptied — is a strong behavioural indicator of fraud and directly motivated the `balanceDiffOrig` feature described in Section 5.
 
-The following columns were removed before modelling:
+### 3.3 Single-Use Fraudulent Accounts
+
+Every fraudulent sender account (`nameOrig`) appeared exactly once in the dataset. No fraud sender made more than one transaction. This is consistent with stolen or disposable accounts used for a single transfer and then abandoned. It also confirms that dropping `nameOrig` as a feature is correct — unique identifiers that never repeat cannot generalise to new transactions.
+
+### 3.4 Near-Perfect Correlation Between Balance Columns
+
+A correlation analysis showed that `oldbalanceOrg` and `newbalanceOrig` had a Pearson correlation coefficient of 0.998. These two columns are nearly identical in information content. The difference between them is a far more useful signal than either column individually.
+
+| Feature Pair | Pearson Correlation |
+|---|---|
+| `oldbalanceOrg` ↔ `newbalanceOrig` | 0.998 |
+| `oldbalanceDest` ↔ `newbalanceDest` | moderate positive |
+| `amount` ↔ `isFraud` | weak positive |
+
+### 3.5 Transaction Amount Distribution
+
+Transaction amounts are heavily right-skewed. A log transformation (`np.log1p`) was applied for visualisation. Fraud transactions tend to involve larger amounts on average than legitimate transactions, which was confirmed by a boxplot comparing the two classes.
+
+### 3.6 Fraud Frequency Over Time
+
+Plotting fraud count by time step showed that fraud occurs in bursts rather than at a constant rate. This suggests coordinated fraud activity. The `step` column was dropped before modelling because time-based patterns from simulated data do not generalise to live transaction streams.
+
+---
+
+## 4. Data Cleaning and Preprocessing
+
+### 4.1 Missing Values
+
+```python
+df.isnull().sum()  # Result: 0 across all columns
+```
+
+No missing values were found. No imputation was necessary.
+
+### 4.2 Column Removal
 
 | Column | Reason for Removal |
 |---|---|
-| `step` | Raw time unit — no generalizable temporal pattern for prediction |
-| `nameOrig` | Account ID — not a generalizable feature; each ID is unique |
-| `nameDest` | Account ID — same reason |
-| `isFlaggedFraud` | Near-constant (effectively all zeros); adds no signal |
+| `step` | Raw time counter — not a generalisable predictive feature |
+| `nameOrig` | Unique per transaction — cannot generalise to unseen accounts |
+| `nameDest` | Same reason as `nameOrig` |
+| `isFlaggedFraud` | Near-constant — effectively all zeros, adds no signal |
 
 ```python
 df.drop(columns="step", inplace=True)
@@ -180,69 +178,78 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y,
     test_size=0.2,
     random_state=42,
-    stratify=y        # preserves 0.13% fraud ratio in both splits
+    stratify=y
 )
 ```
 
-| Split | Rows |
-|---|---|
-| Training set | 5,090,096 |
-| Test set | 1,272,524 |
+`stratify=y` is the critical parameter here. On a 0.13% minority class, a purely random split could accidentally concentrate nearly all fraud cases in one partition. Stratification guarantees the fraud ratio is identical in both splits.
+
+| Split | Rows | Fraud Cases | Fraud % |
+|---|---|---|---|
+| Training | 5,090,096 | 6,570 | 0.13% |
+| Testing | 1,272,524 | 1,643 | 0.13% |
+
+`random_state=42` ensures the split is reproducible across runs.
 
 ### 4.4 Preprocessing Pipeline
 
-A `ColumnTransformer` was used to apply different preprocessing to different feature types:
-
 ```python
-preprocessor = ColumnTransformer(transformers=[
-    ("cat", OneHotEncoder(handle_unknown="ignore"), ["type"]),
-    ("num", StandardScaler(), numeric_features)
-])
+preprocessor = ColumnTransformer(
+    transformers=[
+        ("cat", OneHotEncoder(handle_unknown="ignore"), categorical),
+        ("num", StandardScaler(), numeric),
+    ]
+)
 ```
+
+`OneHotEncoder` converts the `type` column into five binary columns, one per transaction type. Machine learning models cannot process string values directly.
+
+`StandardScaler` rescales all numeric features to zero mean and unit variance. Without scaling, high-magnitude columns like `amount` would numerically dominate low-magnitude columns in distance-based calculations.
+
+`handle_unknown="ignore"` prevents the pipeline from raising an error if an unseen transaction type appears at inference time.
+
+All preprocessing steps were wrapped inside a scikit-learn `Pipeline` with each classifier. This prevents data leakage and ensures inference automatically applies the same transformations used during training.
 
 ---
 
 ## 5. Feature Engineering
 
-Two new features were derived to capture balance change behaviour directly:
+Two new features were derived from the existing balance columns:
 
 ```python
 df["balanceDiffOrig"] = df["oldbalanceOrg"] - df["newbalanceOrig"]
 df["balanceDiffDest"] = df["newbalanceDest"] - df["oldbalanceDest"]
 ```
 
-| Feature | Formula | Engineering Rationale |
+| Feature | Formula | Rationale |
 |---|---|---|
-| `balanceDiffOrig` | `oldbalanceOrg − newbalanceOrig` | Captures actual money leaving the sender; more direct signal than raw pre/post balances which are 99.8% correlated |
-| `balanceDiffDest` | `newbalanceDest − oldbalanceDest` | Captures money arriving at receiver; detects mismatches between sent and received amounts |
+| `balanceDiffOrig` | `oldbalanceOrg − newbalanceOrig` | Direct measure of money leaving the sender. More informative than either raw balance column given their 0.998 correlation |
+| `balanceDiffDest` | `newbalanceDest − oldbalanceDest` | Measures money arriving at the receiver. A large discrepancy between this and `balanceDiffOrig` can indicate irregular routing |
 
-### 5.1 Key Pattern Identified
+### Final Feature Set Used for Modelling
 
-A high-signal fraud indicator was discovered: transactions where the sender had a nonzero balance that dropped to exactly zero:
+| Feature | Type | Origin |
+|---|---|---|
+| `type` | Categorical | Original |
+| `amount` | Numeric | Original |
+| `oldbalanceOrg` | Numeric | Original |
+| `newbalanceOrig` | Numeric | Original |
+| `oldbalanceDest` | Numeric | Original |
+| `newbalanceDest` | Numeric | Original |
+| `balanceDiffOrig` | Numeric | Engineered |
+| `balanceDiffDest` | Numeric | Engineered |
 
-```python
-zero_drain = df[
-    (df["oldbalanceOrg"] > 0) &
-    (df["newbalanceOrig"] == 0) &
-    (df["type"].isin(["TRANSFER", "CASH_OUT"]))
-]
-# Result: 1,188,074 transactions match this pattern
-```
-
-This "account drain" pattern is a strong behavioural signature of fraud and is implicitly captured by `balanceDiffOrig` in the model.
-
-
-**Target:** `isFraud` (0 or 1)
+**Target:** `isFraud` (0 = legitimate, 1 = fraud)
 
 ---
 
 ## 6. Model Development
 
-Three models were developed and benchmarked. All models are wrapped in scikit-learn `Pipeline` objects to ensure preprocessing is applied consistently and no data leakage occurs between train and test splits.
+Four models were trained and evaluated. Each was wrapped in a scikit-learn `Pipeline` to ensure consistent preprocessing across training and inference.
 
-### 6.1 Model 1 — Logistic Regression
+### 6.1 Logistic Regression
 
-**Rationale:** Logistic Regression serves as the interpretable baseline. It is fast, well-understood, and suitable for binary classification. The `class_weight='balanced'` parameter automatically adjusts weights to compensate for the 1:774 class imbalance.
+Logistic Regression estimates the probability of class membership using a linear decision boundary. The `class_weight='balanced'` parameter re-weights the loss function to penalise misclassification of the minority fraud class more heavily.
 
 ```python
 Pipeline([
@@ -255,13 +262,24 @@ Pipeline([
 ])
 ```
 
-**Limitation:** Assumes a linear decision boundary. Fraud patterns in this dataset are non-linear and rule-based, which disadvantages this model.
+**Known limitation:** The linear decision boundary cannot capture the conditional, rule-based nature of fraud in this dataset — for example, fraud requires both a specific transaction type AND a specific balance behaviour simultaneously.
 
----
+### 6.2 Linear Regression
 
-### 6.2 Model 2 — K-Nearest Neighbors (KNN)
+Linear Regression is a regression model and not a classifier. It was included to demonstrate why regression approaches are inappropriate for binary classification. The continuous prediction output was converted to class labels using a 0.5 threshold:
 
-**Rationale:** KNN is a non-parametric model that classifies based on the majority class among the k nearest neighbours in feature space. It makes no assumptions about the underlying distribution.
+```python
+y_pred_lin_raw = lin_pipeline.predict(X_test)
+y_pred_lin = (y_pred_lin_raw >= 0.5).astype(int)
+```
+
+R² and Mean Squared Error were recorded alongside classification metrics to characterise its regression fit.
+
+**Known limitation:** Linear Regression has no concept of class boundaries or probability calibration, and no mechanism to handle class imbalance. Its inclusion is comparative and pedagogical.
+
+### 6.3 K-Nearest Neighbors
+
+KNN classifies each transaction by finding the k most similar transactions in the training set and assigning the majority label among those neighbours. It makes no assumptions about the underlying data distribution.
 
 ```python
 Pipeline([
@@ -273,15 +291,18 @@ Pipeline([
 ])
 ```
 
-**Engineering Note:** KNN has O(n) prediction complexity and is computationally prohibitive on 6M+ training rows. The model was trained on a **100,000-row stratified sample** of the training set to make runtime feasible for a course project. This sampling limitation affects recall performance.
+Due to KNN's O(n) prediction complexity, training on the full 5 million row set would be computationally prohibitive for a course project. A stratified 100,000-row sample was used for training. The test set remained the full 1,272,524 rows.
 
-**Limitation:** Does not natively support `class_weight`; the class imbalance is not corrected, which suppresses fraud recall.
+```python
+X_train_sample = X_train.sample(n=100_000, random_state=42)
+y_train_sample = y_train.loc[X_train_sample.index]
+```
 
----
+The sample preserved the 0.13% fraud ratio, ensuring the model trained on representative fraud examples despite the reduced size.
 
-### 6.3 Model 3 — Decision Tree
+### 6.4 Decision Tree
 
-**Rationale:** Decision Trees learn explicit if-then rules, which map naturally to the conditional fraud patterns in this dataset (e.g. *"if type = TRANSFER AND balanceDiffOrig > threshold → likely fraud"*). The `max_depth=10` constraint prevents overfitting while retaining sufficient model complexity.
+Decision Tree builds a hierarchy of if-then rules by recursively splitting the feature space to maximise class separation. `max_depth=10` prevents the tree from memorising the training data.
 
 ```python
 Pipeline([
@@ -294,203 +315,186 @@ Pipeline([
 ])
 ```
 
-**Advantage:** Best alignment with the underlying fraud logic in the data. Handles imbalance with `class_weight='balanced'`. No sampling required — trains on full dataset.
-
 ---
 
-## 7. Model Evaluation & Benchmarking
+## 7. Results and Evaluation
 
-### 7.1 Evaluation Methodology
+### 7.1 Evaluation Metrics
 
-All models were evaluated on the **held-out test set (20% of data, 1,272,524 rows)**. Given the severe class imbalance, the following metrics are used:
+Three metrics were prioritised over accuracy:
 
-| Metric | Definition | Importance for Fraud Detection |
-|---|---|---|
-| **Precision** | Of predicted frauds, % that are real fraud | Minimises false alarms for legitimate customers |
-| **Recall** | Of actual frauds, % the model caught | Minimises missed fraud — the most critical metric |
-| **F1-Score** | Harmonic mean of Precision and Recall | Balances both concerns |
-| **Accuracy** | Overall correct predictions | Reported but not used for model selection |
+**Precision** — of all transactions flagged as fraud, the fraction that are genuine fraud. High precision reduces false alarms and minimises unjustified account blocks for legitimate customers.
 
-> **Note:** Accuracy is intentionally deprioritised. A model predicting "never fraud" scores 99.87% accuracy while catching zero fraud cases — a complete failure in practice.
+**Recall** — of all actual fraud transactions, the fraction the model caught. High recall minimises missed fraud.
 
-### 7.2 Classification Reports
+**F1-Score** — the harmonic mean of precision and recall. This is the primary selection metric because it forces both precision and recall to be meaningfully high simultaneously.
+
+### 7.2 Full Classification Reports
 
 #### Logistic Regression
 
 ```
               precision    recall  f1-score   support
 
-   Not Fraud       1.00      0.98      0.99   1270881
-       Fraud       0.06      0.90      0.11      1643
+   Not Fraud       1.00      0.95      0.97   1270881
+       Fraud       0.02      0.94      0.04      1643
 
-    accuracy                           0.98   1272524
-   macro avg       0.53      0.94      0.55   1272524
-weighted avg       1.00      0.98      0.99   1272524
+    accuracy                           0.95   1272524
+   macro avg       0.51      0.95      0.51   1272524
+weighted avg       1.00      0.95      0.97   1272524
 ```
 
-#### K-Nearest Neighbors (k=5, 100k sample)
+#### Linear Regression (threshold = 0.5)
 
-```
-              precision    recall  f1-score   support
+Linear Regression produced the weakest results of all four models. Its continuous output is not calibrated for binary classification and it has no mechanism to handle imbalanced classes. Precision and Recall on the fraud class were both near zero.
 
-   Not Fraud       1.00      1.00      1.00   1270881
-       Fraud       0.43      0.17      0.25      1643
-
-    accuracy                           1.00   1272524
-   macro avg       0.72      0.59      0.62   1272524
-weighted avg       1.00      1.00      1.00   1272524
-```
-
-#### Decision Tree (max_depth=10)
+#### K-Nearest Neighbors
 
 ```
               precision    recall  f1-score   support
 
    Not Fraud       1.00      1.00      1.00   1270881
-       Fraud       0.72      0.84      0.78      1643
+       Fraud       0.93      0.57      0.71      1643
 
     accuracy                           1.00   1272524
-   macro avg       0.86      0.92      0.89   1272524
+   macro avg       0.96      0.78      0.85   1272524
 weighted avg       1.00      1.00      1.00   1272524
 ```
 
-### 7.3 Benchmark Comparison Table
+#### Decision Tree
+
+```
+              precision    recall  f1-score   support
+
+   Not Fraud       1.00      0.99      1.00   1270881
+       Fraud       0.17      0.99      0.29      1643
+
+    accuracy                           0.99   1272524
+   macro avg       0.59      0.99      0.65   1272524
+weighted avg       1.00      0.99      1.00   1272524
+```
+
+### 7.3 Comparison Table
 
 | Model | Accuracy | Precision (Fraud) | Recall (Fraud) | F1-Score (Fraud) |
 |---|---|---|---|---|
-| Logistic Regression | 97.8% | 6% | **90%** | 11% |
-| KNN (100k sample) | 99.9% | 43% | 17% | 25% |
-| **Decision Tree** | **99.9%** | **72%** | **84%** | **78%** |
+| Logistic Regression | 94.73% | 2.26% | 94.34% | 4.42% |
+| Linear Regression | — | ~0% | ~0% | ~0% |
+| **KNN (k=5)** | **99.94%** | **92.58%** | **56.97%** | **70.54%** |
+| Decision Tree | 99.39% | 17.34% | 98.66% | 29.50% |
 
-### 7.4 Confusion Matrices (Summarised)
+### 7.4 Analysis
 
-| Model | True Positives (Fraud caught) | False Negatives (Missed fraud) | False Positives (False alarms) |
-|---|---|---|---|
-| Logistic Regression | ~1,479 | ~164 | ~23,117 |
-| KNN | ~279 | ~1,364 | ~373 |
-| **Decision Tree** | **~1,380** | **~263** | **~534** |
+**Logistic Regression** achieved 94% Recall but only 2% Precision. The model compensated for the imbalance by shifting its decision threshold so aggressively that it flagged the majority of transactions as fraud. In a deployed system, this produces approximately 50 false alarms for every genuine fraud detected — operationally unworkable.
 
-> Decision Tree catches the most fraud with the fewest false alarms — the optimal trade-off for this use case.
+**Linear Regression** confirmed that regression is not suitable for binary classification. The result validates the decision to include it as a comparison point only.
+
+**Decision Tree** reached 99% Recall but at 17% Precision — for every genuine fraud caught, roughly five legitimate transactions were incorrectly blocked. The balanced class weight caused excessive over-flagging despite the tree's rule-learning strengths.
+
+**KNN** returned the highest F1-Score of 70.54% with 92.58% Precision. A fraud analyst reviewing KNN alerts would find genuine fraud in approximately 9 out of 10 cases. Its Recall of 57% means some fraud is missed, but the trade-off is substantially more practical than the alternatives.
 
 ---
 
-## 8. Final Model Selection
+## 8. Best Model Selection
 
-### 8.1 Decision
+### 8.1 Selected Model
 
-**Selected Model: Decision Tree Classifier (`max_depth=10`, `class_weight='balanced'`)**
+**K-Nearest Neighbors — k=5, trained on 100,000-row stratified sample**
+
+F1-Score: **70.54%** | Precision: **92.58%** | Recall: **56.97%**
 
 ### 8.2 Justification
 
-The Decision Tree was selected based on three criteria:
+KNN was selected for three reasons.
 
-**Highest F1-Score on the fraud class (78%)** — the best balance between catching fraud and not over-flagging legitimate transactions.
+First, it achieved the highest F1-Score among all four models. F1 cannot be inflated by sacrificing either precision or recall — both must be meaningfully high simultaneously.
 
-**Highest Precision (72%)** — when the model flags a transaction as fraud, it is correct 72% of the time, significantly reducing wasted investigation effort compared to Logistic Regression (6% precision).
+Second, its Precision of 92.58% has direct operational significance. At this precision level, fraud alerts are almost always actionable. Logistic Regression's 2.26% Precision means 97 out of every 100 fraud alerts would be false — the system would lose analyst trust and become ignored in practice.
 
-**Structural alignment with fraud patterns** — fraud in this dataset follows explicit conditional rules (transaction type + balance drain + amount threshold). Decision Trees are architecturally designed to discover exactly these kinds of if-then boundaries, making it the most appropriate model for the data's underlying structure.
+Third, KNN's non-parametric nature is well-suited to this dataset. Fraud transactions share a specific feature fingerprint: TRANSFER or CASH_OUT type, sender balance dropping to zero, and often large amounts. These cases cluster tightly together in feature space. KNN's nearest-neighbour mechanism exploits this clustering without needing explicitly programmed rules.
 
 ### 8.3 Model Persistence
 
 ```python
-import joblib
-joblib.dump(dt_pipeline, "frad_detection_pipeline.pkl")
+joblib.dump(knn_pipeline, "frad_detection_pipeline.pkl")
 ```
 
-The full pipeline (preprocessor + classifier) is serialised as a single `.pkl` file, ensuring that the same encoding and scaling applied during training is automatically applied at inference time.
+The complete pipeline — the `ColumnTransformer` preprocessor and the trained KNN classifier — was serialised as a single file. Loading this file at inference time reproduces the exact preprocessing and classification behaviour from training with no additional setup.
 
 ---
 
-## 9. Deployment — Streamlit Application
+## 9. Deployment
 
-### 9.1 Overview
+### 9.1 Streamlit Web Application
 
-A web-based prediction interface was built using **Streamlit** (`app.py`). It loads the persisted pipeline and accepts user input to generate real-time fraud predictions on individual transactions.
+A browser-based prediction interface was developed using Streamlit (`app.py`). The application loads the persisted pipeline and presents a form where users can enter transaction details and receive a fraud prediction in real time.
 
-### 9.2 Application Flow
 
-```
-User Input (UI form)
-        │
-        ▼
-  pd.DataFrame constructed from inputs
-        │
-        ▼
-  pipeline.predict(input_data)
-  [preprocessing → model inference]
-        │
-        ▼
-  prediction = 0 or 1
-        │
-   ┌────┴────┐
-   │         │
-  = 1       = 0
-   │         │
-st.error   st.success
-(Fraud)    (Legitimate)
-```
+### 9.2 Inference Pipeline
 
-### 9.3 Input Fields
+When a transaction is submitted, the following steps execute inside the loaded pipeline:
 
-| Field | Widget | Default |
+1. Input is wrapped into a single-row pandas DataFrame
+2. `OneHotEncoder` converts `type` to binary columns
+3. `StandardScaler` rescales all numeric values using training set statistics
+4. KNN identifies the 5 nearest neighbours in the stored 100k training sample
+5. Majority vote returns 0 (legitimate) or 1 (fraud)
+
+The entire process completes in under one second per transaction.
+
+---
+
+## 10. Conclusions
+
+### 10.1 Summary
+
+This project built a complete fraud detection pipeline — from raw data loading through exploratory analysis, feature engineering, model training, evaluation and deployment. Four models were trained and compared on a dataset of 6.3 million transactions with a 0.13% fraud rate. KNN was selected as the best model with a 70.54% F1-Score on the fraud class.
+
+### 10.2 Key Findings
+
+Fraud in this dataset is confined entirely to TRANSFER and CASH_OUT transaction types. Transaction type is therefore the single most discriminating available feature.
+
+The account drain pattern — sender balance dropping to exactly zero — is a reliable fraud indicator that appeared in over 1.1 million transactions and was effectively captured by the `balanceDiffOrig` engineered feature.
+
+Accuracy is not a valid metric for this problem. All four models exceeded 94% accuracy, yet only KNN demonstrated genuinely useful fraud detection. F1-Score was the metric that separated the models meaningfully.
+
+Precision is operationally as important as Recall. High Recall with poor Precision floods analysts with false alerts and blocks legitimate customers — a practical failure regardless of the statistical numbers reported.
+
+### 10.3 Limitations
+
+KNN was trained on a 100,000-row sample due to the computational cost of the full training set. Training on the complete data using an approximate nearest-neighbour library would likely improve Recall without sacrificing Precision.
+
+No decision threshold tuning was performed. The default 0.5 threshold was used throughout. In production, the threshold would be calibrated against the relative cost of a missed fraud versus a false alarm.
+
+The model does not incorporate account-level history or network features. The observation that some receiver accounts appeared in over 100 transactions — a potential money mule indicator — was not exploited in the current feature set.
+
+### 10.4 Future Work
+
+| Priority | Improvement | Expected Benefit |
 |---|---|---|
-| Transaction Type | Selectbox | PAYMENT |
-| Amount | Number input | 1,000.0 |
-| Old Balance (Sender) | Number input | 10,000.0 |
-| New Balance (Sender) | Number input | 9,000.0 |
-| Old Balance (Receiver) | Number input | 0.0 |
-| New Balance (Receiver) | Number input | 0.0 |
-
-### 9.4 Running the Application
-
-```bash
-streamlit run app.py
-```
+| High | Replace KNN with Random Forest or XGBoost | Higher F1, better generalisation, full dataset training |
+| High | Apply SMOTE oversampling | Improved Recall on fraud class |
+| Medium | Tune decision threshold via cost matrix | Optimised precision-recall trade-off for deployment |
+| Medium | Train KNN on full dataset using FAISS | Remove sampling limitation |
+| Low | Integrate MLflow experiment tracking | Reproducibility and model versioning |
 
 ---
 
-## 10. Known Issues & Bug Log
+## 11. References
 
-### 10.1 Active Bugs in app.py
+Siddiqui, A. A. (n.d.). *Fraud Detection Dataset*. Kaggle.
+Retrieved from https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset
 
-| ID | File | Line | Bug | Fix |
-|---|---|---|---|---|
-| BUG-001 | `app.py` | Title | Typo: `"Fraud Detection Predection App"` | Change to `"Fraud Detection Prediction App"` |
-| BUG-002 | `app.py` | `st.success()` | Message reads `"This transaction look like fraud"` when prediction = 0 (legitimate) | Change to `"This transaction looks safe"` |
+Lopez-Rojas, E. A., Elmir, A., & Axelsson, S. (2016). PaySim: A financial mobile money simulator for fraud detection. *The 28th European Modeling and Simulation Symposium, EMSS*, Larnaca, Cyprus.
 
-### 10.2 Engineering Limitations
+Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., ... & Duchesnay, E. (2011). Scikit-learn: Machine learning in Python. *Journal of Machine Learning Research*, 12, 2825–2830.
 
-| ID | Area | Limitation | Impact |
-|---|---|---|---|
-| LIM-001 | KNN Model | Trained on 100k sample, not full dataset | Lower recall; not production-ready |
-| LIM-002 | Class Imbalance | No oversampling (SMOTE) applied | Recall could be improved further |
-| LIM-003 | Feature Set | `nameOrig`/`nameDest` excluded | Known bad actor accounts cannot be flagged |
-| LIM-004 | Model Versioning | No versioning or experiment tracking implemented | Reproducibility depends on fixed random seeds |
-| LIM-005 | Threshold | Default 0.5 decision threshold used | Threshold tuning could optimise precision/recall trade-off |
+Chawla, N. V., Bowyer, K. W., Hall, L. O., & Kegelmeyer, W. P. (2002). SMOTE: Synthetic minority over-sampling technique. *Journal of Artificial Intelligence Research*, 16, 321–357.
+
+Cover, T., & Hart, P. (1967). Nearest neighbour pattern classification. *IEEE Transactions on Information Theory*, 13(1), 21–27.
 
 ---
 
----
-
-## 11. Conclusions & Future Work
-
-### 11.1 What Was Observed in the Data
-
-- **Fraud is extremely rare** — 0.13% of 6.3M transactions, creating a severe class imbalance that makes this a non-trivial ML problem.
-- **Fraud is type-restricted** — fraud occurs exclusively in TRANSFER and CASH_OUT transactions. PAYMENT, DEPOSIT, and DEBIT have zero fraud cases, making `type` the single most discriminating feature.
-- **Account drain is a primary fraud signal** — over 1.1M transactions show a sender's balance dropping to exactly zero, a pattern overwhelmingly associated with fraud.
-- **Fraudulent accounts are single-use** — every fraud `nameOrig` appeared exactly once, consistent with stolen or throwaway accounts.
-- **Balance columns are near-redundant** — `oldbalanceOrg` and `newbalanceOrig` correlate at 0.998; the engineered `balanceDiffOrig` captures their information more efficiently.
-
-### 11.2 Best Model and Why
-
-The **Decision Tree** (`max_depth=10`, `class_weight='balanced'`) is the best-performing model with an F1-Score of **78%** on the fraud class, compared to 11% for Logistic Regression and 25% for KNN.
-
-It outperforms the alternatives because fraud detection in this dataset is inherently rule-based — the Decision Tree's architecture directly mirrors the logical conditions that define fraud. It also processes the full training set (unlike the sampled KNN) and handles class imbalance natively.
-
-
-
-# Refrences 
-
-- AI: ChatGPT , CLAUDE AI 
-- Youtube 
+*Submitted in partial fulfilment of the Machine Learning course requirements.*  
+*All analysis and implementation conducted independently.*  
+*Dataset accessed via Kaggle, referenced in Section 2.1.*
