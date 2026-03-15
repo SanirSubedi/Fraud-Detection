@@ -2,8 +2,8 @@
 
 ### Technical Report — Machine Learning Course Project
 
-**Author:** Sanir Subedi , Ajit GC , Abhishek Kc , Aayush Shrestha , Taqi Muhammad 
-**Course:** Machine Learning  
+**Author:** Sanir Subedi , Ajit GC , Abhishek Kc , Aayush Shrestha , Taqi Muhammad
+**Course:** Machine Learning 
 **Submission Date:** March 2026  
 **Repository:** https://github.com/SanirSubedi/Fraud-Detection  
 **Dataset Source:** Kaggle — Fraud Detection Dataset by Aman Ali Siddiqui  
